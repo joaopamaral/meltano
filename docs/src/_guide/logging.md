@@ -102,6 +102,8 @@ formatters:
   structured_colored:
     (): meltano.core.logging.console_log_formatter
     colors: True
+    # pretty exception formatting with the `rich` python library
+    exception_formatter: rich
   json:
     (): meltano.core.logging.json_formatter
 
