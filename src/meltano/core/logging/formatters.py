@@ -26,15 +26,35 @@ def _process_formatter(processor: Processor):
 
     Args:
         processor: A structlog message processor such as structlog.dev.ConsoleRenderer.
+
+    Returns:
+        A configured log processor.
     """
     return structlog.stdlib.ProcessorFormatter(
         processor=processor, foreign_pre_chain=LEVELED_TIMESTAMPED_PRE_CHAIN
     )
 
 
-def console_log_formatter(colors: bool = False) -> None:
-    """Create a logging formatter for console rendering that supports colorization."""
-    return _process_formatter(structlog.dev.ConsoleRenderer(colors=colors))
+def console_log_formatter(
+    colors: bool = False, exception_formatter: str = "plain"
+) -> None:
+    """Create a logging formatter for console rendering that supports colorization.
+
+    Args:
+        colors: Add color to output.
+        exception_formatter: Format exceptions as "plain" or "rich".
+
+    Returns:
+        A configured console log formatter.
+    """
+    processor = (
+        structlog.dev.ConsoleRenderer(colors=colors)
+        if exception_formatter == "rich"
+        else structlog.dev.ConsoleRenderer(
+            colors=colors, exception_formatter=structlog.dev.plain_traceback
+        )
+    )
+    return _process_formatter(processor)
 
 
 def key_value_formatter(
@@ -42,7 +62,16 @@ def key_value_formatter(
     key_order: Sequence[str] | None = None,
     drop_missing: bool = False,
 ) -> None:
-    """Create a logging formatter that renders lines in key=value format."""
+    """Create a logging formatter that renders lines in key=value format.
+
+    Args:
+        sort_keys: Whether to sort keys when formatting.
+        key_order: key_order: List of keys that should be rendered in this exact order. Missing keys will be rendered as None, extra keys depending on *sort_keys* and the dict class.
+        drop_missing: When True, extra keys in *key_order* will be dropped rather than rendered as None.
+
+    Returns:
+        A configured key=value formatter.
+    """
     return _process_formatter(
         processor=structlog.processors.KeyValueRenderer(
             sort_keys=sort_keys, key_order=key_order, drop_missing=drop_missing
@@ -51,5 +80,9 @@ def key_value_formatter(
 
 
 def json_formatter() -> None:
-    """Create a logging formatter that renders lines in JSON format."""
+    """Create a logging formatter that renders lines in JSON format.
+
+    Returns:
+        A configured JSON formatter.
+    """
     return _process_formatter(processor=structlog.processors.JSONRenderer())
